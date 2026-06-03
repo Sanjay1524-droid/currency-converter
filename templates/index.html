@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Currency Converter</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --border: #1f1f2e;
+      --accent: #c8f135;
+      --accent2: #7b61ff;
+      --text: #e8e8f0;
+      --muted: #5a5a78;
+      --error: #ff6b6b;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.4;
+      z-index: 0;
+    }
+
+    /* Glow blob */
+    body::after {
+      content: '';
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(123,97,255,0.12) 0%, transparent 70%);
+      top: -100px;
+      right: -100px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    header {
+      margin-bottom: 2.5rem;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      background: rgba(200,241,53,0.08);
+      border: 1px solid rgba(200,241,53,0.2);
+      padding: 4px 10px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    h1 span {
+      color: var(--accent);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+      opacity: 0.5;
+    }
+
+    .field-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 1.1rem;
+      padding: 0.75rem 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+    }
+
+    input[type="number"]:focus, select:focus {
+      border-color: var(--accent2);
+      box-shadow: 0 0 0 3px rgba(123,97,255,0.15);
+    }
+
+    input[type="number"]::placeholder { color: var(--muted); }
+
+    /* Remove number input arrows */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .currency-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0.75rem;
+      align-items: end;
+      margin-bottom: 1.5rem;
+    }
+
+    .swap-btn {
+      background: var(--border);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background 0.2s, transform 0.2s;
+      flex-shrink: 0;
+      margin-bottom: 0;
+    }
+
+    .swap-btn:hover {
+      background: rgba(200,241,53,0.1);
+      transform: rotate(180deg);
+    }
+
+    .convert-btn {
+      width: 100%;
+      padding: 0.9rem;
+      background: var(--accent);
+      color: #0a0a0f;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .convert-btn:hover { opacity: 0.88; }
+    .convert-btn:active { transform: scale(0.98); }
+    .convert-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .result-box {
+      margin-top: 1.5rem;
+      padding: 1.25rem 1.5rem;
+      background: rgba(200,241,53,0.05);
+      border: 1px solid rgba(200,241,53,0.15);
+      border-radius: 10px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-box.show { display: block; }
+
+    .result-amount {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.8rem;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 0.3rem;
+    }
+
+    .result-meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .error-box {
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: rgba(255,107,107,0.07);
+      border: 1px solid rgba(255,107,107,0.2);
+      border-radius: 8px;
+      color: var(--error);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      display: none;
+    }
+
+    .error-box.show { display: block; }
+
+    .loader {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #0a0a0f;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="tag">Live Rates</div>
+    <h1>Currency<br/><span>Converter</span></h1>
+  </header>
+
+  <div class="card">
+    <div class="field-group">
+      <label>Amount</label>
+      <input type="number" id="amount" placeholder="1.00" value="1" min="0" step="any"/>
+    </div>
+
+    <div class="currency-row">
+      <div>
+        <label>From</label>
+        <select id="from_currency"></select>
+      </div>
+      <button class="swap-btn" onclick="swapCurrencies()" title="Swap">⇄</button>
+      <div>
+        <label>To</label>
+        <select id="to_currency"></select>
+      </div>
+    </div>
+
+    <button class="convert-btn" id="convertBtn" onclick="convert()">Convert</button>
+
+    <div class="result-box" id="resultBox">
+      <div class="result-amount" id="resultAmount"></div>
+      <div class="result-meta" id="resultMeta"></div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+  </div>
+
+  <footer>Rates via open.er-api.com · Updates every 24h</footer>
+</div>
+
+<script>
+  const fromEl = document.getElementById('from_currency');
+  const toEl   = document.getElementById('to_currency');
+
+  async function loadCurrencies() {
+    try {
+      const res  = await fetch('/currencies');
+      const list = await res.json();
+      list.forEach(c => {
+        fromEl.innerHTML += `<option value="${c}">${c}</option>`;
+        toEl.innerHTML   += `<option value="${c}">${c}</option>`;
+      });
+      fromEl.value = 'USD';
+      toEl.value   = 'INR';
+    } catch(e) {
+      console.error('Could not load currencies', e);
+    }
+  }
+
+  function swapCurrencies() {
+    [fromEl.value, toEl.value] = [toEl.value, fromEl.value];
+  }
+
+  async function convert() {
+    const btn    = document.getElementById('convertBtn');
+    const resBox = document.getElementById('resultBox');
+    const errBox = document.getElementById('errorBox');
+    const amount = parseFloat(document.getElementById('amount').value);
+
+    resBox.classList.remove('show');
+    errBox.classList.remove('show');
+
+    if (!amount || amount <= 0) {
+      errBox.textContent = 'Please enter a valid amount.';
+      errBox.classList.add('show');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loader"></span>Converting...';
+
+    try {
+      const res  = await fetch('/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount,
+          from_currency: fromEl.value,
+          to_currency: toEl.value
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        errBox.textContent = data.error || 'Something went wrong.';
+        errBox.classList.add('show');
+      } else {
+        document.getElementById('resultAmount').textContent =
+          `${data.converted.toLocaleString()} ${data.to}`;
+        document.getElementById('resultMeta').textContent =
+          `${data.amount} ${data.from} = ${data.rate} ${data.to} per unit`;
+        resBox.classList.add('show');
+      }
+    } catch(e) {
+      errBox.textContent = 'Network error. Is the server running?';
+      errBox.classList.add('show');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Convert';
+    }
+  }
+
+  // Allow Enter key to trigger convert
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') convert();
+  });
+
+  loadCurrencies();
+</script>
+</body>
+</html>
