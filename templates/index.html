@@ -7,7 +7,6 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
       --bg: #0a0a0f;
       --surface: #13131a;
@@ -18,21 +17,18 @@
       --muted: #5a5a78;
       --error: #ff6b6b;
     }
-
     body {
       background: var(--bg);
       color: var(--text);
       font-family: 'Syne', sans-serif;
       min-height: 100vh;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       padding: 2rem;
       position: relative;
       overflow-x: hidden;
     }
-
-    /* Background grid */
     body::before {
       content: '';
       position: fixed;
@@ -44,348 +40,466 @@
       opacity: 0.4;
       z-index: 0;
     }
-
-    /* Glow blob */
     body::after {
       content: '';
       position: fixed;
-      width: 500px;
-      height: 500px;
+      width: 500px; height: 500px;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(123,97,255,0.12) 0%, transparent 70%);
-      top: -100px;
-      right: -100px;
-      z-index: 0;
-      pointer-events: none;
+      top: -100px; right: -100px;
+      z-index: 0; pointer-events: none;
     }
-
     .container {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 520px;
+      position: relative; z-index: 1;
+      width: 100%; max-width: 860px;
+      padding-top: 2rem;
     }
-
-    header {
-      margin-bottom: 2.5rem;
-    }
-
+    header { margin-bottom: 2rem; }
     .tag {
       display: inline-block;
       font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
+      font-size: 0.7rem; letter-spacing: 0.15em;
       color: var(--accent);
       background: rgba(200,241,53,0.08);
       border: 1px solid rgba(200,241,53,0.2);
-      padding: 4px 10px;
-      border-radius: 2px;
-      text-transform: uppercase;
-      margin-bottom: 1rem;
+      padding: 4px 10px; border-radius: 2px;
+      text-transform: uppercase; margin-bottom: 1rem;
     }
+    h1 { font-size: 2.4rem; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+    h1 span { color: var(--accent); }
 
-    h1 {
-      font-size: 2.4rem;
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -0.02em;
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
     }
-
-    h1 span {
-      color: var(--accent);
+    @media (max-width: 680px) {
+      .layout { grid-template-columns: 1fr; }
     }
 
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2rem;
-      position: relative;
-      overflow: hidden;
+      border-radius: 16px; padding: 2rem;
+      position: relative; overflow: hidden;
     }
-
     .card::before {
       content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
       background: linear-gradient(90deg, transparent, var(--accent2), transparent);
       opacity: 0.5;
     }
 
-    .field-group {
-      margin-bottom: 1.5rem;
+    /* Map card */
+    .map-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.5rem;
+      position: relative; overflow: hidden;
     }
+    .map-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.4;
+    }
+    .map-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .map-info {
+      display: flex; gap: 1rem; margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .map-badge {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: 'DM Mono', monospace; font-size: 0.75rem;
+      padding: 6px 12px; border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .map-badge.from { border-color: rgba(200,241,53,0.3); color: var(--accent); background: rgba(200,241,53,0.05); }
+    .map-badge.to   { border-color: rgba(123,97,255,0.3); color: #a78bfa; background: rgba(123,97,255,0.05); }
+    .map-badge .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .map-badge.from .dot { background: var(--accent); }
+    .map-badge.to   .dot { background: #a78bfa; }
 
+    #worldMap {
+      width: 100%; height: 260px;
+      background: #0d0d14;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    #worldMap svg { width: 100%; height: 100%; }
+    .country-default { fill: #1a1a2e; stroke: #2a2a40; stroke-width: 0.5; transition: fill 0.3s; }
+    .country-from { fill: rgba(200,241,53,0.5); stroke: var(--accent); stroke-width: 1; }
+    .country-to   { fill: rgba(123,97,255,0.5); stroke: #7b61ff; stroke-width: 1; }
+    .country-both { fill: rgba(255,165,0,0.5); stroke: orange; stroke-width: 1; }
+
+    .field-group { margin-bottom: 1.5rem; }
     label {
       display: block;
       font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
+      font-size: 0.7rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted);
       margin-bottom: 0.5rem;
     }
-
     input[type="number"], select {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: 'DM Mono', monospace;
-      font-size: 1.1rem;
-      padding: 0.75rem 1rem;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: 'DM Mono', monospace;
+      font-size: 1.1rem; padding: 0.75rem 1rem;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
       appearance: none;
     }
-
     input[type="number"]:focus, select:focus {
       border-color: var(--accent2);
       box-shadow: 0 0 0 3px rgba(123,97,255,0.15);
     }
-
     input[type="number"]::placeholder { color: var(--muted); }
-
-    /* Remove number input arrows */
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
     .currency-row {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 0.75rem;
-      align-items: end;
-      margin-bottom: 1.5rem;
+      display: grid; grid-template-columns: 1fr auto 1fr;
+      gap: 0.75rem; align-items: end; margin-bottom: 1.5rem;
     }
-
     .swap-btn {
-      background: var(--border);
-      border: 1px solid var(--border);
-      color: var(--accent);
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 1.1rem;
-      transition: background 0.2s, transform 0.2s;
-      flex-shrink: 0;
-      margin-bottom: 0;
+      background: var(--border); border: 1px solid var(--border);
+      color: var(--accent); width: 42px; height: 42px;
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; cursor: pointer; font-size: 1.1rem;
+      transition: background 0.2s, transform 0.2s; flex-shrink: 0;
     }
-
-    .swap-btn:hover {
-      background: rgba(200,241,53,0.1);
-      transform: rotate(180deg);
-    }
+    .swap-btn:hover { background: rgba(200,241,53,0.1); transform: rotate(180deg); }
 
     .convert-btn {
-      width: 100%;
-      padding: 0.9rem;
-      background: var(--accent);
-      color: #0a0a0f;
-      border: none;
-      border-radius: 8px;
-      font-family: 'Syne', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      cursor: pointer;
+      width: 100%; padding: 0.9rem;
+      background: var(--accent); color: #0a0a0f;
+      border: none; border-radius: 8px;
+      font-family: 'Syne', sans-serif; font-size: 1rem;
+      font-weight: 700; letter-spacing: 0.05em;
+      text-transform: uppercase; cursor: pointer;
       transition: opacity 0.2s, transform 0.1s;
     }
-
     .convert-btn:hover { opacity: 0.88; }
     .convert-btn:active { transform: scale(0.98); }
     .convert-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .result-box {
-      margin-top: 1.5rem;
-      padding: 1.25rem 1.5rem;
+      margin-top: 1.5rem; padding: 1.25rem 1.5rem;
       background: rgba(200,241,53,0.05);
       border: 1px solid rgba(200,241,53,0.15);
-      border-radius: 10px;
-      display: none;
+      border-radius: 10px; display: none;
       animation: fadeIn 0.3s ease;
     }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-
     .result-box.show { display: block; }
-
     .result-amount {
-      font-family: 'DM Mono', monospace;
-      font-size: 1.8rem;
-      font-weight: 500;
-      color: var(--accent);
-      margin-bottom: 0.3rem;
+      font-family: 'DM Mono', monospace; font-size: 1.8rem;
+      font-weight: 500; color: var(--accent); margin-bottom: 0.3rem;
     }
-
-    .result-meta {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
-
+    .result-meta { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); }
     .error-box {
-      margin-top: 1.5rem;
-      padding: 1rem 1.25rem;
+      margin-top: 1.5rem; padding: 1rem 1.25rem;
       background: rgba(255,107,107,0.07);
       border: 1px solid rgba(255,107,107,0.2);
-      border-radius: 8px;
-      color: var(--error);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.8rem;
-      display: none;
+      border-radius: 8px; color: var(--error);
+      font-family: 'DM Mono', monospace; font-size: 0.8rem; display: none;
     }
-
     .error-box.show { display: block; }
-
     .loader {
-      display: inline-block;
-      width: 14px; height: 14px;
-      border: 2px solid rgba(0,0,0,0.3);
-      border-top-color: #0a0a0f;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(0,0,0,0.3); border-top-color: #0a0a0f;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+      vertical-align: middle; margin-right: 6px;
     }
-
     @keyframes spin { to { transform: rotate(360deg); } }
-
     footer {
-      margin-top: 1.5rem;
-      text-align: center;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
-      color: var(--muted);
+      margin-top: 1.5rem; text-align: center;
+      font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted);
     }
   </style>
 </head>
 <body>
 <div class="container">
   <header>
-    <div class="tag">Live Rates</div>
+    <div class="tag">Live Rates · Map View</div>
     <h1>Currency<br/><span>Converter</span></h1>
   </header>
 
-  <div class="card">
-    <div class="field-group">
-      <label>Amount</label>
-      <input type="number" id="amount" placeholder="1.00" value="1" min="0" step="any"/>
-    </div>
-
-    <div class="currency-row">
-      <div>
-        <label>From</label>
-        <select id="from_currency"></select>
+  <div class="layout">
+    <!-- Converter Card -->
+    <div class="card">
+      <div class="field-group">
+        <label>Amount</label>
+        <input type="number" id="amount" placeholder="1.00" value="1" min="0" step="any"/>
       </div>
-      <button class="swap-btn" onclick="swapCurrencies()" title="Swap">⇄</button>
-      <div>
-        <label>To</label>
-        <select id="to_currency"></select>
+      <div class="currency-row">
+        <div>
+          <label>From</label>
+          <select id="from_currency" onchange="updateMap()"></select>
+        </div>
+        <button class="swap-btn" onclick="swapCurrencies()" title="Swap">⇄</button>
+        <div>
+          <label>To</label>
+          <select id="to_currency" onchange="updateMap()"></select>
+        </div>
+      </div>
+      <button class="convert-btn" id="convertBtn" onclick="convert()">Convert</button>
+      <div class="result-box" id="resultBox">
+        <div class="result-amount" id="resultAmount"></div>
+        <div class="result-meta" id="resultMeta"></div>
+      </div>
+      <div class="error-box" id="errorBox"></div>
+    </div>
+
+    <!-- Map Card -->
+    <div class="map-card">
+      <div class="map-title">Country Map</div>
+      <div class="map-info">
+        <div class="map-badge from"><span class="dot"></span><span id="fromLabel">USD — United States</span></div>
+        <div class="map-badge to"><span class="dot"></span><span id="toLabel">INR — India</span></div>
+      </div>
+      <div id="worldMap">
+        <!-- SVG world map will be injected here -->
+        <svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" id="mapSvg"></svg>
       </div>
     </div>
-
-    <button class="convert-btn" id="convertBtn" onclick="convert()">Convert</button>
-
-    <div class="result-box" id="resultBox">
-      <div class="result-amount" id="resultAmount"></div>
-      <div class="result-meta" id="resultMeta"></div>
-    </div>
-
-    <div class="error-box" id="errorBox"></div>
   </div>
 
   <footer>Rates via open.er-api.com · Updates every 24h</footer>
 </div>
 
 <script>
-  const fromEl = document.getElementById('from_currency');
-  const toEl   = document.getElementById('to_currency');
+// Currency → ISO country code(s) mapping
+const CURRENCY_COUNTRIES = {
+  USD: ['US'], EUR: ['DE','FR','IT','ES','NL','BE','AT','PT','FI','IE','GR','SK','SI','LV','LT','EE','LU','MT','CY'],
+  GBP: ['GB'], JPY: ['JP'], INR: ['IN'], CNY: ['CN'], AUD: ['AU'], CAD: ['CA'],
+  CHF: ['CH'], HKD: ['HK'], SGD: ['SG'], NZD: ['NZ'], SEK: ['SE'], NOK: ['NO'],
+  DKK: ['DK'], MXN: ['MX'], BRL: ['BR'], ZAR: ['ZA'], RUB: ['RU'], KRW: ['KR'],
+  TRY: ['TR'], IDR: ['ID'], MYR: ['MY'], PHP: ['PH'], THB: ['TH'], AED: ['AE'],
+  SAR: ['SA'], PKR: ['PK'], EGP: ['EG'], NGN: ['NG'], KES: ['KE'], GHS: ['GH'],
+  ILS: ['IL'], TWD: ['TW'], CLP: ['CL'], COP: ['CO'], PEN: ['PE'], ARS: ['AR'],
+  VND: ['VN'], BDT: ['BD'], LKR: ['LK'], NPR: ['NP'], MMK: ['MM'], KZT: ['KZ'],
+  UAH: ['UA'], CZK: ['CZ'], HUF: ['HU'], PLN: ['PL'], RON: ['RO'], BGN: ['BG'],
+  HRK: ['HR'], ISK: ['IS'], MAD: ['MA'], DZD: ['DZ'], TND: ['TN'], QAR: ['QA'],
+  KWD: ['KW'], BHD: ['BH'], OMR: ['OM'], JOD: ['JO']
+};
 
-  async function loadCurrencies() {
-    try {
-      const res  = await fetch('/currencies');
-      const list = await res.json();
-      list.forEach(c => {
-        fromEl.innerHTML += `<option value="${c}">${c}</option>`;
-        toEl.innerHTML   += `<option value="${c}">${c}</option>`;
-      });
-      fromEl.value = 'USD';
-      toEl.value   = 'INR';
-    } catch(e) {
-      console.error('Could not load currencies', e);
-    }
-  }
+const CURRENCY_NAMES = {
+  USD:'United States', EUR:'Eurozone', GBP:'United Kingdom', JPY:'Japan',
+  INR:'India', CNY:'China', AUD:'Australia', CAD:'Canada', CHF:'Switzerland',
+  HKD:'Hong Kong', SGD:'Singapore', NZD:'New Zealand', SEK:'Sweden',
+  NOK:'Norway', DKK:'Denmark', MXN:'Mexico', BRL:'Brazil', ZAR:'South Africa',
+  RUB:'Russia', KRW:'South Korea', TRY:'Turkey', IDR:'Indonesia', MYR:'Malaysia',
+  PHP:'Philippines', THB:'Thailand', AED:'UAE', SAR:'Saudi Arabia', PKR:'Pakistan',
+  EGP:'Egypt', NGN:'Nigeria', KES:'Kenya', GHS:'Ghana', ILS:'Israel',
+  TWD:'Taiwan', CLP:'Chile', COP:'Colombia', PEN:'Peru', ARS:'Argentina',
+  VND:'Vietnam', BDT:'Bangladesh', LKR:'Sri Lanka', NPR:'Nepal',
+  MMK:'Myanmar', KZT:'Kazakhstan', UAH:'Ukraine', CZK:'Czech Republic',
+  HUF:'Hungary', PLN:'Poland', RON:'Romania', BGN:'Bulgaria', ISK:'Iceland',
+  MAD:'Morocco', DZD:'Algeria', TND:'Tunisia', QAR:'Qatar', KWD:'Kuwait',
+  BHD:'Bahrain', OMR:'Oman', JOD:'Jordan'
+};
 
-  function swapCurrencies() {
-    [fromEl.value, toEl.value] = [toEl.value, fromEl.value];
-  }
+// Simplified world map paths (major countries)
+const COUNTRY_PATHS = {
+  US: "M140,140 L240,135 L250,180 L230,200 L160,195 L130,170 Z",
+  CA: "M140,80 L250,75 L255,135 L140,140 Z",
+  MX: "M140,195 L200,190 L215,230 L170,240 L135,215 Z",
+  BR: "M230,270 L320,255 L340,330 L290,370 L220,355 L200,310 Z",
+  AR: "M220,355 L280,350 L275,430 L235,440 L215,400 Z",
+  CL: "M210,330 L230,325 L225,440 L205,445 Z",
+  CO: "M205,255 L240,250 L245,285 L210,290 Z",
+  PE: "M195,285 L240,278 L242,325 L200,330 Z",
+  GB: "M430,115 L445,110 L450,135 L435,140 Z",
+  FR: "M435,145 L470,140 L475,170 L440,175 Z",
+  DE: "M460,125 L495,120 L498,155 L462,158 Z",
+  IT: "M460,160 L485,155 L490,195 L465,198 Z",
+  ES: "M420,160 L460,155 L462,185 L422,188 Z",
+  PT: "M408,158 L422,155 L424,185 L410,188 Z",
+  NL: "M450,118 L465,115 L468,130 L452,132 Z",
+  BE: "M445,130 L462,127 L464,143 L447,145 Z",
+  CH: "M458,150 L475,147 L477,162 L460,164 Z",
+  AT: "M470,145 L500,142 L502,158 L472,160 Z",
+  PL: "M475,115 L510,110 L513,145 L477,148 Z",
+  CZ: "M470,135 L498,132 L500,148 L472,150 Z",
+  HU: "M478,150 L508,147 L510,163 L480,165 Z",
+  RO: "M495,145 L525,140 L528,165 L497,167 Z",
+  BG: "M497,162 L522,158 L524,175 L499,177 Z",
+  UA: "M490,120 L540,112 L544,145 L492,148 Z",
+  RU: "M490,60 L800,45 L810,150 L492,155 Z",
+  TR: "M510,165 L570,158 L575,185 L512,188 Z",
+  IL: "M530,190 L540,188 L542,205 L531,207 Z",
+  SA: "M535,205 L590,198 L595,240 L537,243 Z",
+  AE: "M575,210 L598,207 L600,225 L577,227 Z",
+  KW: "M558,198 L572,196 L574,210 L560,212 Z",
+  QA: "M570,215 L580,213 L581,225 L571,226 Z",
+  BH: "M565,213 L572,212 L573,220 L566,221 Z",
+  OM: "M580,220 L605,215 L608,245 L582,247 Z",
+  JO: "M525,188 L540,185 L542,200 L527,202 Z",
+  EG: "M505,188 L535,183 L538,215 L507,217 Z",
+  MA: "M415,185 L445,180 L448,215 L417,218 Z",
+  DZ: "M430,195 L495,188 L498,235 L432,238 Z",
+  TN: "M453,178 L468,175 L470,200 L455,202 Z",
+  NG: "M448,258 L480,253 L483,290 L450,292 Z",
+  GH: "M432,258 L450,255 L452,280 L434,282 Z",
+  KE: "M518,278 L540,273 L543,305 L520,307 Z",
+  ZA: "M468,355 L510,350 L513,395 L470,397 Z",
+  IN: "M608,175 L665,168 L670,250 L610,253 Z",
+  PK: "M578,158 L615,152 L618,185 L580,188 Z",
+  BD: "M648,195 L663,192 L665,215 L650,217 Z",
+  LK: "M635,248 L645,246 L647,262 L636,263 Z",
+  NP: "M628,172 L655,168 L657,185 L630,187 Z",
+  CN: "M645,130 L760,115 L765,210 L647,215 Z",
+  JP: "M770,145 L795,140 L798,175 L772,177 Z",
+  KR: "M752,158 L770,155 L772,178 L754,180 Z",
+  TW: "M757,193 L767,191 L769,208 L759,209 Z",
+  VN: "M695,215 L715,210 L718,255 L697,257 Z",
+  TH: "M678,215 L700,210 L703,248 L680,250 Z",
+  MM: "M658,205 L682,200 L685,238 L660,240 Z",
+  MY: "M690,255 L730,250 L732,270 L692,272 Z",
+  ID: "M700,270 L800,262 L805,295 L702,298 Z",
+  PH: "M745,230 L770,225 L773,268 L747,270 Z",
+  SG: "M710,270 L718,269 L719,277 L711,278 Z",
+  AU: "M720,320 L840,308 L845,420 L722,425 Z",
+  NZ: "M860,380 L880,375 L882,415 L862,417 Z",
+  KZ: "M570,110 L650,100 L655,148 L572,152 Z",
+  HK: "M740,207 L750,205 L751,214 L741,215 Z",
+  IS: "M390,80 L415,76 L418,98 L392,100 Z",
+  SE: "M462,80 L480,76 L483,118 L464,120 Z",
+  NO: "M440,70 L470,65 L473,110 L442,113 Z",
+  DK: "M452,108 L463,105 L465,120 L454,122 Z",
+  FI: "M468,72 L495,67 L498,108 L470,111 Z",
+  GR: "M484,170 L505,166 L508,190 L486,192 Z",
+  HR: "M464,153 L482,150 L484,165 L466,167 Z",
+  SK: "M476,138 L500,135 L502,150 L478,152 Z",
+  SI: "M462,150 L478,148 L480,160 L464,162 Z",
+  LV: "M476,100 L495,97 L497,112 L478,114 Z",
+  LT: "M475,108 L494,105 L496,120 L477,122 Z",
+  EE: "M474,93 L493,90 L495,103 L476,105 Z",
+  LU: "M450,138 L458,137 L459,145 L451,146 Z",
+  MT: "M466,192 L472,191 L473,197 L467,198 Z",
+  CY: "M518,180 L530,178 L531,188 L519,189 Z",
+  IE: "M415,118 L428,115 L430,135 L417,137 Z"
+};
 
-  async function convert() {
-    const btn    = document.getElementById('convertBtn');
-    const resBox = document.getElementById('resultBox');
-    const errBox = document.getElementById('errorBox');
-    const amount = parseFloat(document.getElementById('amount').value);
+const fromEl = document.getElementById('from_currency');
+const toEl   = document.getElementById('to_currency');
 
-    resBox.classList.remove('show');
-    errBox.classList.remove('show');
+// Build SVG map
+function buildMap() {
+  const svg = document.getElementById('mapSvg');
+  svg.innerHTML = '';
+  // Ocean background
+  const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  rect.setAttribute('width','1000'); rect.setAttribute('height','500');
+  rect.setAttribute('fill','#0d0d14');
+  svg.appendChild(rect);
 
-    if (!amount || amount <= 0) {
-      errBox.textContent = 'Please enter a valid amount.';
-      errBox.classList.add('show');
-      return;
-    }
+  Object.entries(COUNTRY_PATHS).forEach(([code, path]) => {
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d', path);
+    p.setAttribute('class','country-default');
+    p.setAttribute('data-code', code);
+    p.setAttribute('id','country-'+code);
+    svg.appendChild(p);
+  });
+}
 
-    btn.disabled = true;
-    btn.innerHTML = '<span class="loader"></span>Converting...';
+function updateMap() {
+  const fromCur = fromEl.value;
+  const toCur   = toEl.value;
+  const fromCountries = CURRENCY_COUNTRIES[fromCur] || [];
+  const toCountries   = CURRENCY_COUNTRIES[toCur]   || [];
 
-    try {
-      const res  = await fetch('/convert', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount,
-          from_currency: fromEl.value,
-          to_currency: toEl.value
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        errBox.textContent = data.error || 'Something went wrong.';
-        errBox.classList.add('show');
-      } else {
-        document.getElementById('resultAmount').textContent =
-          `${data.converted.toLocaleString()} ${data.to}`;
-        document.getElementById('resultMeta').textContent =
-          `${data.amount} ${data.from} = ${data.rate} ${data.to} per unit`;
-        resBox.classList.add('show');
-      }
-    } catch(e) {
-      errBox.textContent = 'Network error. Is the server running?';
-      errBox.classList.add('show');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Convert';
-    }
-  }
-
-  // Allow Enter key to trigger convert
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter') convert();
+  // Reset all
+  document.querySelectorAll('[data-code]').forEach(el => {
+    el.setAttribute('class','country-default');
   });
 
-  loadCurrencies();
+  // Highlight
+  fromCountries.forEach(code => {
+    const el = document.getElementById('country-'+code);
+    if (el) el.setAttribute('class', toCountries.includes(code) ? 'country-both' : 'country-from');
+  });
+  toCountries.forEach(code => {
+    const el = document.getElementById('country-'+code);
+    if (el && !fromCountries.includes(code)) el.setAttribute('class','country-to');
+  });
+
+  // Update badges
+  document.getElementById('fromLabel').textContent = `${fromCur} — ${CURRENCY_NAMES[fromCur] || fromCur}`;
+  document.getElementById('toLabel').textContent   = `${toCur} — ${CURRENCY_NAMES[toCur] || toCur}`;
+}
+
+async function loadCurrencies() {
+  try {
+    const res  = await fetch('/currencies');
+    const list = await res.json();
+    list.forEach(c => {
+      fromEl.innerHTML += `<option value="${c}">${c}</option>`;
+      toEl.innerHTML   += `<option value="${c}">${c}</option>`;
+    });
+    fromEl.value = 'USD';
+    toEl.value   = 'INR';
+    updateMap();
+  } catch(e) { console.error('Could not load currencies', e); }
+}
+
+function swapCurrencies() {
+  [fromEl.value, toEl.value] = [toEl.value, fromEl.value];
+  updateMap();
+}
+
+async function convert() {
+  const btn    = document.getElementById('convertBtn');
+  const resBox = document.getElementById('resultBox');
+  const errBox = document.getElementById('errorBox');
+  const amount = parseFloat(document.getElementById('amount').value);
+  resBox.classList.remove('show');
+  errBox.classList.remove('show');
+  if (!amount || amount <= 0) {
+    errBox.textContent = 'Please enter a valid amount.';
+    errBox.classList.add('show'); return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span>Converting...';
+  try {
+    const res  = await fetch('/convert', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, from_currency: fromEl.value, to_currency: toEl.value })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errBox.textContent = data.error || 'Something went wrong.';
+      errBox.classList.add('show');
+    } else {
+      document.getElementById('resultAmount').textContent = `${data.converted.toLocaleString()} ${data.to}`;
+      document.getElementById('resultMeta').textContent   = `${data.amount} ${data.from} = ${data.rate} ${data.to} per unit`;
+      resBox.classList.add('show');
+    }
+  } catch(e) {
+    errBox.textContent = 'Network error. Is the server running?';
+    errBox.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Convert';
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') convert(); });
+
+buildMap();
+loadCurrencies();
 </script>
 </body>
 </html>
